@@ -34,7 +34,23 @@ options:
   l3out:
     description:
     - The L3Out associated with the external epg.
-    type: str
+    type: dict
+    suboptions:
+      name:
+        description:
+        - The name of the L3Out to associate with.
+        required: true
+        type: str
+      schema:
+        description:
+        - The schema that defines the referenced L3Out.
+        - If this parameter is unspecified, it defaults to the current schema.
+        type: str
+      template:
+        description:
+        - The template that defines the referenced L3Out.
+        - If this parameter is unspecified, it defaults to the current template.
+        type: str
   external_epg:
     description:
     - The name of the External EPG to be managed.
@@ -73,7 +89,8 @@ def main():
         schema=dict(type='str', required=True),
         template=dict(type='str', required=True),
         site=dict(type='str', required=True),
-        l3out=dict(type='str'),
+        #l3out=dict(type='dict', options=mso_reference_spec()),
+        l3out=dict(type='dict', required=True),
         external_epg=dict(type='str', aliases=['name']),
         state=dict(type='str', default='present', choices=['absent', 'present', 'query']),
     )
@@ -92,6 +109,10 @@ def main():
     site = module.params.get('site')
     external_epg = module.params.get('external_epg')
     l3out = module.params.get('l3out')
+    if l3out is not None and l3out.get('template') is not None:
+        l3out['template'] = l3out.get('template').replace(' ', '')
+    if l3out is not None and l3out.get('schema') is not None:
+        l3out['schema'] = l3out.get('schema').replace(' ', '')
     state = module.params.get('state')
 
     mso = MSOModule(module)
@@ -161,6 +182,7 @@ def main():
 
     elif state == 'present':
         l3out_dn = 'uni/tn-{0}/out-{1}'.format(tenant_name, l3out)
+        l3out_ref = mso.make_reference(l3out, 'l3out', schema_id, template)
         payload = dict(
             externalEpgRef=dict(
                 schemaId=schema_id,
@@ -168,11 +190,7 @@ def main():
                 externalEpgName=external_epg,
             ),
             l3outDn=l3out_dn,
-            l3outRef=dict(
-                schemaId=schema_id,
-                templateName=template,
-                l3outName=l3out,
-            ),
+            l3outRef=l3out_ref,
         )
 
         mso.sanitize(payload, collate=True)

@@ -1,5 +1,5 @@
 ---
-namespace: cisco
+namespace: sturwin
 name: mso
 # The version of the collection. Must be compatible with semantic versioning
 version: 1.2.0
@@ -23,7 +23,7 @@ tags:
 - multisite
 dependencies:
   "ansible.netcommon": "*"
-repository: https://github.com/CiscoDevNet/ansible-mso
+repository: https://github.com/sturwin/ansible-mso
 documentation: https://docs.ansible.com/ansible/latest/scenario_guides/guide_aci.html
 homepage: https://cisco.com/go/aci
 issues: https://github.com/CiscoDevNet/ansible-mso/issues
